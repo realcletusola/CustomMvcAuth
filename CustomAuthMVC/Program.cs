@@ -1,3 +1,6 @@
+using CustomAuthMVC.Entities;
+using Microsoft.EntityFrameworkCore;
+
 namespace CustomAuthMVC
 {
     public class Program
@@ -8,6 +11,11 @@ namespace CustomAuthMVC
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+
+            // Add postgresql to services
+            builder.Services.AddDbContext<AppDbContext>(options =>
+                options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 
             var app = builder.Build();
 
