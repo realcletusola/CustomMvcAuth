@@ -22,13 +22,13 @@ namespace CustomAuthMVC.Models
         public string UserName { get; set; }
 
         [Required(ErrorMessage = "Password is required.")]
-        [StringLength(40, MinimumLength = 8, ErrorMessage = "Password must be at least 8 charcters")]
+        // expression for password to be at least 8 char and must be a strong password
         [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$", ErrorMessage = "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one digit, and one special character.")]
         [DataType(DataType.Password)]
         public string Password { get; set; }
 
         [Compare("Password", ErrorMessage = "Both passwords must be equal")]
-        [StringLength(40, MinimumLength = 8, ErrorMessage = "Password must be at least 8 charcters")]
+        // expression for password to be at least 8 char and must be a strong password
         [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$", ErrorMessage = "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one digit, and one special character.")]
         [DataType(DataType.Password)]
         public string ConfirmPassword { get; set; }
