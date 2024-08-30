@@ -59,6 +59,10 @@ namespace CustomAuthMVC.Controllers
             {
                 ModelState.AddModelError("email_character", "Please provide a valid email address");
             }
+            else if (_context.UserAccounts.Any(u => u.Email == model.Email)) 
+            {
+                ModelState.AddModelError("email_exists", $"Email {model.Email} is not available");
+            }
 
             // validate username 
             if (string.IsNullOrWhiteSpace(model.UserName))
@@ -68,6 +72,10 @@ namespace CustomAuthMVC.Controllers
             else if (model.UserName.Length > 20)
             {
                 ModelState.AddModelError("username_length", "Username cannot exceed 20 characters");
+            }
+            else if (_context.UserAccounts.Any(u => u.UserName == model.UserName))
+            {
+                ModelState.AddModelError("username_exists", $"Username {model.UserName} is not available");
             }
 
             // validate password 
@@ -89,12 +97,15 @@ namespace CustomAuthMVC.Controllers
             // create account if modelstate is valid
             if (ModelState.IsValid)
             {
+                // Hash the password 
+                string hashedPassword = BCrypt.Net.BCrypt.HashPassword(model.Password);
+
                 UserAccount account = new UserAccount();
                 account.FirstName = model.FirstName;
                 account.LastName = model.LastName;
                 account.Email = model.Email;
                 account.UserName = model.UserName;
-                account.Password = model.Password;
+                account.Password = hashedPassword;
 
                 _context.UserAccounts.Add(account);
                 _context.SaveChanges();
@@ -108,5 +119,7 @@ namespace CustomAuthMVC.Controllers
             // if validation fails return view with model and validation errors 
             return View(model);
         }
+
+
     }
 }
