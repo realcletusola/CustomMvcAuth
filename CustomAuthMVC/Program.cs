@@ -1,5 +1,6 @@
 using CustomAuthMVC.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace CustomAuthMVC
 {
@@ -11,6 +12,14 @@ namespace CustomAuthMVC
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+
+            // Configure authentication 
+            builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(options =>
+                {
+                    options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+                    options.SlidingExpiration = true;
+                });
 
             // Add postgresql to services
             builder.Services.AddDbContext<AppDbContext>(options =>
@@ -32,6 +41,7 @@ namespace CustomAuthMVC
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapControllerRoute(
