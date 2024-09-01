@@ -4,9 +4,9 @@ namespace CustomAuthMVC.Models
 {
     public class LoginModel
     {
-        [Required(ErrorMessage = "Username is required.")]
-        [MaxLength(20, ErrorMessage = "Max of 20 chracters is allowed")]
-        public string UserName { get; set; }
+        [Required(ErrorMessage = "Username or Email is required.")]
+        [MaxLength(20, ErrorMessage = "Max of 40 chracters is allowed")]
+        public string UserNameOrEmail { get; set; }
 
         [Required(ErrorMessage = "Password is required.")]
         // expression for password to be at least 8 char and must be a strong password
