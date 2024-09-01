@@ -1,7 +1,12 @@
 ﻿using CustomAuthMVC.Entities;
 using CustomAuthMVC.Models;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using System.Text.RegularExpressions;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CustomAuthMVC.Controllers
 {
@@ -15,12 +20,14 @@ namespace CustomAuthMVC.Controllers
             _context = appDbContext;
         }
 
+
         public IActionResult Index()
         {
             return View();
         }
 
-        // add iAction method for registration
+        // create registration controller 
+        [HttpGet]
         public IActionResult Registration()
         {
             return View();
@@ -59,7 +66,7 @@ namespace CustomAuthMVC.Controllers
             {
                 ModelState.AddModelError("email_character", "Please provide a valid email address");
             }
-            else if (_context.UserAccounts.Any(u => u.Email == model.Email)) 
+            else if (_context.UserAccounts.Any(u => u.Email == model.Email))
             {
                 ModelState.AddModelError("email_exists", $"Email {model.Email} is not available");
             }
@@ -89,7 +96,7 @@ namespace CustomAuthMVC.Controllers
             }
 
             // validate second password 
-            if(model.Password != model.ConfirmPassword)
+            if (model.Password != model.ConfirmPassword)
             {
                 ModelState.AddModelError("password_match", "Both passwords must match");
             }
@@ -113,13 +120,82 @@ namespace CustomAuthMVC.Controllers
                 ModelState.Clear();
                 ViewBag.Message = $"Account created successfully for {account.UserName}";
 
-                return View(); 
+                return View();
             }
 
             // if validation fails return view with model and validation errors 
             return View(model);
         }
 
+        // create login controller 
+        [HttpGet]
+        public IActionResult Login()
+        {
+            return View();
+        }
 
+        [HttpPost]
+        public IActionResult Login(LoginModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                // fetch the user account from database 
+                var userAccount = _context.UserAccounts.SingleOrDefault(u => u.UserName == model.UserNameOrEmail || u.Email == model.UserNameOrEmail);
+
+                // check if the password matches 
+                if (userAccount != null && BCrypt.Net.BCrypt.Verify(model.Password, userAccount.Password))
+                {
+                    // create claims for the user (usr identity)
+                    var claims = new List<Claim>
+                    {
+                        // store username in claims
+                        new Claim(ClaimTypes.Name, userAccount.UserName),
+                        new Claim(ClaimTypes.Email, userAccount.Email)
+                    };
+
+                    // create the claims identity 
+                    var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+                    // create authentication properties 
+                    var authProperties = new AuthenticationProperties
+                    {
+                        IsPersistent = true,
+                        ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(30)
+                    };
+
+                    // sign in the user 
+                    HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity), authProperties);
+
+                    // redirect to profile page 
+                    return RedirectToAction("Profile", "Account");
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "Invalid login details");
+                }
+            }
+
+            return View(model);
+        }
+
+        // logout controller
+        public IActionResult Logout()
+        {
+            // sign out the user and remove the authentication cookie 
+            HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return RedirectToAction("Index", "Home");
+        } 
+
+        // profile controller 
+        [Authorize]
+        public IActionResult Profile()
+        {
+            // get username from user's claim
+            var username = User.Identity.Name;
+
+            ViewBag.Username = username;
+
+            return View();
+        }
     }
 }
