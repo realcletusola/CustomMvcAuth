@@ -1,5 +1,4 @@
 <h3>Custom MVC Authentication in ASP.NET Core</h3>
-
     This project is a custom implementation of an authentication and authorization system using ASP.NET Core MVC. The solution demonstrates how to build a       complete user authentication flow from scratch without relying on built-in frameworks like ASP.NET Core Identity. It includes user registration,             login, logout, and access control based on roles or user claims.
 
 <h4>Key Features</h4>
